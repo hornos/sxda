@@ -1,0 +1,179 @@
+#!/bin/bash
+
+### global
+gbn=$(basename ${BASH_SOURCE})
+
+### vars
+sxda_url="http://www.mpie.de/index.php?id=3281&L=1%C3%82%C2%A8type%3D1%2F%21intitle"
+sxda_url_man="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign-manual.pdf"
+sxda_bin_url="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign.gz"
+sxda_bin="./sxdefectalign"
+sxda_ev2ry=0.073498618
+sxda_long="long.dat"
+sxda_short="short.dat"
+
+### help
+function sxda/help() {
+  cat << EOF
+Usage: ${gbn} options
+              -i input.dat - parameter file
+              -a x|y|z     - profile axis
+              -m           - show manual
+              -p           - plot
+              -d           - download binary
+              -r           - remove species
+              -h           - help
+EOF
+  exit 1
+}
+
+function sxda/man() {
+  local _m="${1:-${sxda_url_man}}"
+  lynx "${_m}"
+  exit $?
+}
+
+function sxda/get() {
+  local _url="${1:-${sxda_bin_url}}"
+  local _bin="${2:-${sxda_bin}}"
+
+  echo "Download: ${_url}"
+  wget -U "" -T 5 -qO- "${_url}" > "${_bin}.gz"
+  if test $? -gt 0 ; then
+    echo "Download failed"
+    exit 1
+  fi
+  gunzip -fv "${_bin}.gz"
+  chmod a+x "${_bin}"
+  exit $?
+}
+
+function sxda/plot() {
+  local _s="${1:-short.dat}"
+  local _l="${2:-long.dat}"
+  local _plot="${gbn}.plot"
+  local _d
+  for _d in "${_s}" "${_l}" ; do
+    if ! test -r "${_d}" ; then
+      echo "${_d} not found"
+      return 1
+    fi
+  done 
+
+  cat << EOF > "${_plot}"
+plot '${_s}' using 1:2 title 'Def-Ref' with lines, \
+     '${_s}' using 1:3 title 'Short' with lines, \
+     '${_l}'  using 1:2 title 'Long' with lines
+EOF
+  gnuplot -persist "${_plot}"
+}
+
+### args
+_i=""
+_a="x"
+_r=false
+while getopts hmdrpi:a: o; do
+  case "$o" in
+    h) sxda/help;;
+    m) sxda/man;;
+    d) sxda/get;;
+    r) _r=true;;
+    p) sxda/plot "${sxda_short}" "${sxda_long}"; exit $?;;
+    a) _a=$OPTARG;;
+    i) _i=$OPTARG;;
+  esac
+done
+
+case ${_a} in
+  x) _axis=1;;
+  y) _axis=2;;
+  z) _axis=3;;
+  *) _axis=1;;
+esac
+
+### parameters
+_inp="${_i:-${gbn}.dat}"
+_out="./vline-eV.dat"
+if ! test -r "${_inp}" ; then
+  echo "${_inp} not found"
+  exit 1
+fi
+
+source "${_inp}"
+
+### main
+if ${_r} ; then
+  echo -n "Remove species:"
+  for pot in "${VREF}" "${VDEF}" ; do
+    echo -n " ${pot}"
+    _pot="${pot}.tmp"
+    cat "${pot}" | \
+    awk '{if(!match($0,"([A-Z][a-z] +)+")) print}' > "${_pot}"
+  done
+  VREF="${VREF}.tmp"
+  VDEF="${VDEF}.tmp"
+fi
+
+_ecut_ry=$(echo "${ECUT}*${sxda_ev2ry}" | bc)
+
+echo ""
+echo "Reference : ${VREF}"
+echo "Defect    : ${VDEF}"
+echo "Cutoff    : ${_ecut_ry} Ry (${ECUT} eV)"
+echo "Charge    : ${CHARGE} (real: $((-1*${CHARGE})))"
+echo "Dielec.   : ${EPS}"
+echo "Axis      : ${_a}"
+if test -z "${SHIFT}" ; then
+  echo "LR Shift  : Not set"
+else
+  echo "LR Shift  : ${SHIFT}"
+fi
+echo ""
+echo -n "Calculate correction? (y/n) "
+read _ans
+case "${_ans}" in
+  "n" | "no" | "q"  )
+  exit 1;;
+esac
+
+_shift=""
+if ! test -z "${SHIFT}" ; then
+  _shift="-C ${SHIFT}"
+fi
+
+### defect algin
+_cmd="${sxda_bin} --vasp --ecut ${_ecut_ry} --charge ${CHARGE}"
+_cmd="${_cmd} --eps ${EPS} --relative --pos \"${POS}\""
+_cmd="${_cmd} ${_shift} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
+
+echo "Command:"
+echo "${_cmd}"
+echo ""
+eval ${_cmd}
+
+### check
+if ! test -r "${_out}" ; then
+  echo "${_out} not found"
+  exit 1
+fi
+
+### process output
+
+echo "#   ${_a}           V(long)"                  > "${sxda_long}"
+cat "${_out}" | \
+awk '{if(NF==2) printf "%12.6f %12.6f\n", $1, $2}' >> "${sxda_long}"
+
+echo
+echo "#   ${_a}           V(def)-V(ref) V(short)"              > "${sxda_short}"
+cat "${_out}" | \
+awk '{if(NF==3) printf "%12.6f %12.6f %12.6f\n", $1, $2, $3}' >> "${sxda_short}"
+
+if test -z "${SHIFT}" ; then
+  echo -n "Plot potentials? (y/n) "
+  read _ans
+  case "${_ans}" in
+    "y" | "yes" )
+      sxda/plot "${sxda_short}" "${sxda_long}"
+      ;;
+  esac
+fi
