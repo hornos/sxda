@@ -57,7 +57,7 @@ function sxda/plot() {
   local _s="${1:-short.dat}"
   local _l="${2:-long.dat}"
   local _plot="${gbn}.plot"
-  local _d
+  local _d=""
   for _d in "${_s}" "${_l}" ; do
     if ! test -r "${_d}" ; then
       echo "${_d} not found"
@@ -173,6 +173,12 @@ if ! test -z "${GAMMA}" ; then
   echo "Gamma     : ${GAMMA}"
 fi
 
+_expnorm=""
+if ! test -z "${EXPNORM}" ; then
+  _expnorm="--expnorm ${EXPNORM}"
+  echo "Expnorm   : ${EXPNORM}"
+fi
+
 echo ""
 echo -n "Calculate correction? (y/n) "
 read _ans
@@ -184,7 +190,7 @@ esac
 
 ### defect algin
 _cmd="${sxda_bin} --vasp ${_ecut} ${_charge}"
-_cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma}"
+_cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma} ${expnorm}"
 _cmd="${_cmd} --relative --pos \"${POS}\""
 _cmd="${_cmd} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
 
