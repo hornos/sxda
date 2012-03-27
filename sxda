@@ -2,12 +2,13 @@
 
 ### global
 gbn=$(basename ${BASH_SOURCE})
+grd=$(dirname ${BASH_SOURCE})
 
 ### vars
 sxda_url="http://www.mpie.de/index.php?id=3281&L=1%C3%82%C2%A8type%3D1%2F%21intitle"
 sxda_url_man="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign-manual.pdf"
 sxda_bin_url="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign.gz"
-sxda_bin="./sxdefectalign"
+sxda_bin="${grd}/sxdefectalign"
 sxda_ev2ry=0.073498618
 sxda_long="long.dat"
 sxda_short="short.dat"
@@ -92,7 +93,7 @@ case ${_a} in
 esac
 
 ### parameters
-_inp="${_i:-${gbn}.dat}"
+_inp="${_i:-./${gbn}.dat}"
 _out="./vline-eV.dat"
 if ! test -r "${_inp}" ; then
   echo "${_inp} not found"
