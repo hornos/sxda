@@ -9,12 +9,15 @@ sxda_url="http://www.mpie.de/index.php?id=3281&L=1%C3%82%C2%A8type%3D1%2F%21inti
 sxda_url_man="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign-manual.pdf"
 sxda_bin_url="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign.gz"
 sxda_bin="${grd}/sxdefectalign"
-sxda_ev2ry=0.073498618
 sxda_long="long.dat"
 sxda_short="short.dat"
 
+### unit conversion
+sxda_ev2ry=0.073498618
+sxda_ang2bohr=1.889725989
+
 ### help
-function sxda/help() {
+function help/sxda() {
   cat << EOF
 Usage: ${gbn} options
               -i input.dat - parameter file
@@ -23,6 +26,7 @@ Usage: ${gbn} options
               -p           - plot
               -d           - download binary
               -r           - remove species
+              -t           - use remove species files
               -h           - help
 EOF
   exit 1
@@ -64,21 +68,23 @@ function sxda/plot() {
   cat << EOF > "${_plot}"
 plot '${_s}' using 1:2 title 'Def-Ref' with lines, \
      '${_s}' using 1:3 title 'Short' with lines, \
-     '${_l}'  using 1:2 title 'Long' with lines
+     '${_l}' using 1:2 title 'Long' with lines
 EOF
   gnuplot -persist "${_plot}"
 }
 
 ### args
 _i=""
-_a="x"
+_a="z"
 _r=false
-while getopts hmdrpi:a: o; do
+_t=false
+while getopts hmdrtpi:a: o; do
   case "$o" in
-    h) sxda/help;;
+    h) help/sxda;;
     m) sxda/man;;
     d) sxda/get;;
     r) _r=true;;
+    t) _t=true;;
     p) sxda/plot "${sxda_short}" "${sxda_long}"; exit $?;;
     a) _a=$OPTARG;;
     i) _i=$OPTARG;;
@@ -93,7 +99,7 @@ case ${_a} in
 esac
 
 ### parameters
-_inp="${_i:-./${gbn}.dat}"
+_inp="${_i:-${gbn}.dat}"
 _out="./vline-eV.dat"
 if ! test -r "${_inp}" ; then
   echo "${_inp} not found"
@@ -115,20 +121,58 @@ if ${_r} ; then
   VDEF="${VDEF}.tmp"
 fi
 
-_ecut_ry=$(echo "${ECUT}*${sxda_ev2ry}" | bc)
+if ${_t} ; then
+  VREF="${VREF}.tmp"
+  VDEF="${VDEF}.tmp"
+fi
 
+_ecut=""
+_ecut_ry=$(echo "${ECUT}*${sxda_ev2ry}" | bc)
+_ecut="--ecut ${_ecut_ry}"
+
+### General Options
 echo ""
 echo "Reference : ${VREF}"
 echo "Defect    : ${VDEF}"
 echo "Cutoff    : ${_ecut_ry} Ry (${ECUT} eV)"
-echo "Charge    : ${CHARGE} (real: $((-1*${CHARGE})))"
-echo "Dielec.   : ${EPS}"
-echo "Axis      : ${_a}"
-if test -z "${SHIFT}" ; then
-  echo "LR Shift  : Not set"
+echo "Int. Axis : ${_a}"
+
+_charge=""
+if ! test -z "${CHARGE}" ; then
+  echo "Charge    : ${CHARGE} (real: $((-1*${CHARGE})))"
+  _charge="--charge ${CHARGE}"
 else
-  echo "LR Shift  : ${SHIFT}"
+  echo "Charge    : default"
 fi
+
+_eps=""
+if ! test -z "${EPS}" ; then
+  _eps="--eps ${EPS}"
+  echo "Dielec.   : ${EPS}"
+else
+  echo "Dielec.   : default"
+fi
+
+_shift=""
+if ! test -z "${SHIFT}" ; then
+  echo "Shift (C) : ${SHIFT}"
+  _shift="-C ${SHIFT}"
+fi
+
+### Gauss Options
+_beta=""
+if ! test -z "${BETA}" ; then
+  _beta_br=$(echo "${BETA}*${sxda_ang2bohr}" | bc)
+  echo "Beta      : ${_beta_br} bohr (${_beta} Ang)"
+  _beta="--beta ${_beta_br}"
+fi
+
+_gamma=""
+if ! test -z "${GAMMA}" ; then
+  _gamma="--gamma ${GAMMA}"
+  echo "Gamma     : ${GAMMA}"
+fi
+
 echo ""
 echo -n "Calculate correction? (y/n) "
 read _ans
@@ -137,15 +181,12 @@ case "${_ans}" in
   exit 1;;
 esac
 
-_shift=""
-if ! test -z "${SHIFT}" ; then
-  _shift="-C ${SHIFT}"
-fi
 
 ### defect algin
-_cmd="${sxda_bin} --vasp --ecut ${_ecut_ry} --charge ${CHARGE}"
-_cmd="${_cmd} --eps ${EPS} --relative --pos \"${POS}\""
-_cmd="${_cmd} ${_shift} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
+_cmd="${sxda_bin} --vasp ${_ecut} ${_charge}"
+_cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma}"
+_cmd="${_cmd} --relative --pos \"${POS}\""
+_cmd="${_cmd} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
 
 echo "Command:"
 echo "${_cmd}"
