@@ -190,7 +190,7 @@ esac
 
 ### defect algin
 _cmd="${sxda_bin} --vasp ${_ecut} ${_charge}"
-_cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma} ${expnorm}"
+_cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma} ${_expnorm}"
 _cmd="${_cmd} --relative --pos \"${POS}\""
 _cmd="${_cmd} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
 
