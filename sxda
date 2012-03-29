@@ -179,6 +179,12 @@ if ! test -z "${EXPNORM}" ; then
   echo "Expnorm   : ${EXPNORM}"
 fi
 
+_average=""
+if ! test -z "${AVERAGE}" ; then
+  _average="--average ${AVERAGE}"
+  echo "Average   : ${AVERAGE}"
+fi
+
 echo ""
 echo -n "Calculate correction? (y/n) "
 read _ans
@@ -191,7 +197,7 @@ esac
 ### defect algin
 _cmd="${sxda_bin} --vasp ${_ecut} ${_charge}"
 _cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma} ${_expnorm}"
-_cmd="${_cmd} --relative --pos \"${POS}\""
+_cmd="${_cmd} ${_average} --relative --pos \"${POS}\""
 _cmd="${_cmd} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
 
 echo "Command:"
