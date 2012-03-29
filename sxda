@@ -117,8 +117,11 @@ source "${_inp}"
 if ${_r} ; then
   echo -n "Remove species:"
   for pot in "${VREF}" "${VDEF}" ; do
-    echo -n " ${pot}"
     _pot="${pot}.tmp"
+    if test -r "${_pot}" ; then
+      continue
+    fi
+    echo -n " ${pot}"
     cat "${pot}" | \
     awk '{if(!match($0,"([A-Z][a-z] +)+")) print}' > "${_pot}"
   done
