@@ -28,7 +28,12 @@ Usage: ${gbn} options
               -r           - remove species
               -t           - use remove species files
               -h           - help
+
+Plot will produce figure similar to PSS B 248 No 5, 1071 Figure 3.
 EOF
+echo ""
+echo "URL: ${sxda_url}"
+
   exit 1
 }
 
@@ -99,7 +104,7 @@ case ${_a} in
 esac
 
 ### parameters
-_inp="${_i:-${gbn}.dat}"
+_inp="${_i:-./${gbn}.dat}"
 _out="./vline-eV.dat"
 if ! test -r "${_inp}" ; then
   echo "${_inp} not found"
