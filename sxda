@@ -27,6 +27,7 @@ Usage: ${gbn} options
               -d           - download binary
               -r           - remove species
               -t           - use remove species files
+              -v           - verbose
               -h           - help
 
 Plot will produce figure similar to PSS B 248 No 5, 1071 Figure 3.
@@ -83,13 +84,15 @@ _i=""
 _a="z"
 _r=false
 _t=false
-while getopts hmdrtpi:a: o; do
+_v=false
+while getopts hvmdrtpi:a: o; do
   case "$o" in
     h) help/sxda;;
     m) sxda/man;;
     d) sxda/get;;
     r) _r=true;;
     t) _t=true;;
+    v) _v=true;;
     p) sxda/plot "${sxda_short}" "${sxda_long}"; exit $?;;
     a) _a=$OPTARG;;
     i) _i=$OPTARG;;
@@ -208,9 +211,11 @@ _cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma} ${_expnorm}"
 _cmd="${_cmd} ${_average} --relative --pos \"${POS}\""
 _cmd="${_cmd} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
 
-echo "Command:"
-echo "${_cmd}"
-echo ""
+if ${_v} ; then
+  echo "Command:"
+  echo "${_cmd}"
+  echo ""
+fi
 eval ${_cmd}
 
 ### check
