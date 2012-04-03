@@ -173,8 +173,9 @@ fi
 ### Gauss Options
 _beta=""
 if ! test -z "${BETA}" ; then
-  _beta_br=$(echo "${BETA}*${sxda_ang2bohr}" | bc)
-  echo "Beta      : ${_beta_br} bohr (${_beta} Ang)"
+  _beta_br=${BETA}
+  # _beta_br=$(echo "${BETA}*${sxda_ang2bohr}" | bc)
+  # echo "Beta      : ${_beta_br} bohr (${_beta} Ang)"
   _beta="--beta ${_beta_br}"
 fi
 
