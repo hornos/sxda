@@ -117,6 +117,13 @@ fi
 source "${_inp}"
 
 ### main
+for pot in "${VREF}" "${VDEF}" ; do
+  if ! test -r "${pot}" ; then
+    echo "Not found: ${pot}"
+    exit 1
+  fi
+done
+
 if ${_r} ; then
   echo -n "Remove species:"
   for pot in "${VREF}" "${VDEF}" ; do
