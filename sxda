@@ -75,6 +75,8 @@ function sxda/plot() {
 plot '${_s}' using 1:2 title 'Def-Ref' with lines, \
      '${_s}' using 1:3 title 'Short' with lines, \
      '${_l}' using 1:2 title 'Long' with lines
+f(x)=0.0
+replot f(x) with lines
 EOF
   gnuplot -persist "${_plot}"
 }
