@@ -276,7 +276,7 @@ if test -z "${SHIFT}" ; then
   echo -n "Plot potentials? (y/n) "
   read _ans
   case "${_ans}" in
-    "y" | "yes" | "case" )
+    "y" | "yes" | "" )
       sxda/plot "${sxda_short}" "${sxda_long}"
       ;;
   esac
