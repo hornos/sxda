@@ -22,6 +22,8 @@ function help/sxda() {
 Usage: ${gbn} options
               -i input.dat - parameter file
               -a x|y|z     - profile axis
+              -l label     - plot label
+              -y range     - gnuplot y axis range [min:max]
               -m           - show manual
               -p           - plot
               -d           - download binary
@@ -62,7 +64,6 @@ function sxda/get() {
 function sxda/plot() {
   local _s="${1:-short.dat}"
   local _l="${2:-long.dat}"
-  local _label="${3}"
   local _plot="${gbn}.plot"
   local _d=""
   for _d in "${_s}" "${_l}" ; do
@@ -72,10 +73,16 @@ function sxda/plot() {
     fi
   done 
 
+  local _yr=""
+  if ! test -z "${sxda_yr}" ; then
+    _yr="set yr ${sxda_yr}"
+  fi
+
   cat << EOF > "${_plot}"
-set title "${_label} Axis ${_a}"
+set title "${sxda_label} Axis ${_a}"
 set ylabel "Elstat. pot. LOCPOT"
 set xlabel "Distance (Bohr)"
+${_yr}
 plot '${_s}' using 1:2 title 'Def-Ref' with lines, \
      '${_s}' using 1:3 title 'Short' with lines, \
      '${_l}' using 1:2 title 'Long' with lines
@@ -98,8 +105,9 @@ _a="z"
 _r=false
 _t=false
 _v=false
-_l=""
-while getopts hvmdrtpi:a:l: o; do
+sxda_label=""
+sxda_yr=""
+while getopts hvmdrtpi:a:l:y: o; do
   case "$o" in
     h) help/sxda;;
     m) sxda/man;;
@@ -107,8 +115,9 @@ while getopts hvmdrtpi:a:l: o; do
     r) _r=true;;
     t) _t=true;;
     v) _v=true;;
-    l) _l=$OPTARG;;
-    p) sxda/plot "${sxda_short}" "${sxda_long}" "${_l}"
+    l) sxda_label=$OPTARG;;
+    y) sxda_yr=$OPTARG;;
+    p) sxda/plot "${sxda_short}" "${sxda_long}"
        exit $?;;
     a) _a=$OPTARG;;
     i) _i=$OPTARG;;
