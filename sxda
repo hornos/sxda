@@ -73,16 +73,15 @@ function sxda/plot() {
     fi
   done 
 
-  local _yr=""
-  if ! test -z "${sxda_yr}" ; then
-    _yr="set yr ${sxda_yr}"
-  fi
-
   cat << EOF > "${_plot}"
 set title "${sxda_label} Axis ${_a}"
 set ylabel "Elstat. pot. LOCPOT"
 set xlabel "Distance (Bohr)"
-${_yr}
+EOF
+  if ! test -z "${sxda_yr}" ; then
+    echo "set yr ${sxda_yr}" >> "${_plot}"
+  fi
+  cat << EOF >> "${_plot}"
 plot '${_s}' using 1:2 title 'Def-Ref' with lines, \
      '${_s}' using 1:3 title 'Short' with lines, \
      '${_l}' using 1:2 title 'Long' with lines
