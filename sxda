@@ -9,8 +9,6 @@ sxda_url="http://www.mpie.de/index.php?id=3281&L=1%C3%82%C2%A8type%3D1%2F%21inti
 sxda_url_man="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign-manual.pdf"
 sxda_bin_url="http://www.mpie.de/fileadmin/pics/CM-pics/Common/SPHInX/sxdefectalign.gz"
 sxda_bin="${grd}/sxdefectalign"
-sxda_long="long.dat"
-sxda_short="short.dat"
 
 ### unit conversion
 sxda_ev2ry=0.073498618
@@ -64,7 +62,7 @@ function sxda/get() {
 function sxda/plot() {
   local _s="${1:-short.dat}"
   local _l="${2:-long.dat}"
-  local _plot="${gbn}.plot"
+  local _plot="${gbn}_${_a}.plot"
   local _d=""
   for _d in "${_s}" "${_l}" ; do
     if ! test -r "${_d}" ; then
@@ -106,6 +104,8 @@ _t=false
 _v=false
 sxda_label=""
 sxda_yr=""
+sxda_long="long_${_a}.dat"
+sxda_short="short_${_a}.dat"
 while getopts hvmdrtpi:a:l:y: o; do
   case "$o" in
     h) help/sxda;;
@@ -118,7 +118,9 @@ while getopts hvmdrtpi:a:l:y: o; do
     y) sxda_yr=$OPTARG;;
     p) sxda/plot "${sxda_short}" "${sxda_long}"
        exit $?;;
-    a) _a=$OPTARG;;
+    a) _a=$OPTARG
+    sxda_long="long_${_a}.dat"
+    sxda_short="short_${_a}.dat";;
     i) _i=$OPTARG;;
   esac
 done
