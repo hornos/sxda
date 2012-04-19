@@ -272,12 +272,10 @@ echo "#   ${_a}           V(def)-V(ref) V(short)"              > "${sxda_short}"
 cat "${_out}" | \
 awk '{if(NF==3) printf "%12.6f %12.6f %12.6f\n", $1, $2, $3}' >> "${sxda_short}"
 
-if test -z "${SHIFT}" ; then
-  echo -n "Plot potentials? (y/n) "
-  read _ans
-  case "${_ans}" in
-    "y" | "yes" | "" )
-      sxda/plot "${sxda_short}" "${sxda_long}"
-      ;;
-  esac
-fi
+echo -n "Plot potentials? (y/n) "
+read _ans
+case "${_ans}" in
+  "y" | "yes" | "" )
+    sxda/plot "${sxda_short}" "${sxda_long}"
+    ;;
+esac
