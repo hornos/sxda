@@ -72,11 +72,21 @@ function sxda/plot() {
   done 
 
   cat << EOF > "${_plot}"
+set title "${VDEF} Axis ${_a}"
+set ylabel "Elstat. pot. LOCPOT"
+set xlabel "Distance (Bohr)"
 plot '${_s}' using 1:2 title 'Def-Ref' with lines, \
      '${_s}' using 1:3 title 'Short' with lines, \
      '${_l}' using 1:2 title 'Long' with lines
 f(x)=0.0
-replot f(x) with lines
+replot f(x) title 'Zero' with lines
+set term png
+set output "plot_${_a}.png"
+replot
+set term postscript
+set output "plot_${_a}.ps"
+replot
+set term x11
 EOF
   gnuplot -persist "${_plot}"
 }
