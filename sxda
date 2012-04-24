@@ -250,11 +250,9 @@ _cmd="${_cmd} ${_eps} ${_shift} ${_beta} ${_gamma} ${_expnorm}"
 _cmd="${_cmd} ${_average} ${_pos}"
 _cmd="${_cmd} -a${_axis} --vref \"${VREF}\" --vdef \"${VDEF}\""
 
-if ${_v} ; then
-  echo "Command:"
-  echo "${_cmd}"
-  echo ""
-fi
+echo ""
+echo "${_cmd}"
+echo ""
 eval ${_cmd}
 
 ### check
